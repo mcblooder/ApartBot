@@ -12,7 +12,9 @@ import io.ktor.client.*
 import io.ktor.client.engine.apache.Apache
 import io.ktor.client.features.json.*
 import io.ktor.client.request.*
+import io.ktor.server.engine.embeddedServer
 import kotlinx.coroutines.*
+import org.jsoup.Jsoup
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -24,6 +26,7 @@ fun Application.module(testing: Boolean = false) {
             serializer = GsonSerializer()
         }
     }
+
     runBlocking {
         // Sample for making a HTTP Client request
         /*
@@ -38,11 +41,15 @@ fun Application.module(testing: Boolean = false) {
     routing {
         get("/") {
 //            val kek = client.get<String>("https://pastebin.com/raw/n54ynQY5")
-            val lal = client.get<EmployeeResponse>("https://api.myjson.com/bins/ofg7w")
-
-            call.respondText(lal.employees.joinToString {
-                it.name + " " + it.email
-            }, contentType = ContentType.Text.Plain)
+            //val lal = client.get<EmployeeResponse>("https://api.myjson.com/bins/ofg7w")
+//            call.respondText(lal.employees.joinToString {
+//                it.name + " " + it.email
+//            }, contentType = ContentType.Text.Plain)
+            val document = Jsoup.connect("https://neagent.info/tomsk/sdam-odno-komnatnuyu-kvartiru/kirovskiy/").get()
+            val response = document.select("tr[class^=infoblock4]").map {
+                it.select("span[itemprop=name]").text() + "\t\t\t\t" + it.select("span[itemprop=price]").text()
+            }
+            call.respondText(response.joinToString("\n"))
         }
 
         get("/html-dsl") {
