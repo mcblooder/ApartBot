@@ -50,6 +50,7 @@ dependencies {
     compile "io.ktor:ktor-client-json-jvm:$ktor_version"
     compile "io.ktor:ktor-client-gson:$ktor_version"
     compile 'org.jsoup:jsoup:1.12.1'
+    compile "org.telegram:telegrambots:4.4.0.2"
     implementation "io.ktor:ktor-client-apache:$ktor_version"
     testCompile "io.ktor:ktor-server-tests:$ktor_version"
 }
