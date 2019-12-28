@@ -2,6 +2,7 @@ package com.example.RoomProviders.Bpru
 
 import com.example.Models.Room
 import com.example.Protocols.FetchingStrategy
+import com.example.exceptions.AdParsingException
 import io.ktor.client.HttpClient
 import org.jsoup.Jsoup
 
@@ -25,9 +26,11 @@ class BpruFetchingStrategy: FetchingStrategy {
             it.text()
         }
 
-        val adsCount = listOf(ids.count(), addresses.count(), prices.count()).min() ?: 0
+        if (ids.count() != addresses.count() || addresses.count() != prices.count()) {
+            throw AdParsingException("Number of parsed pieces do not match")
+        }
 
-        return (0 until adsCount).map {
+        return (0 until ids.count()).map {
             Room(ids[it],
                 prices[it],
                 uniquePrefix,

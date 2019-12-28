@@ -1,5 +1,6 @@
 package com.example.Invokables
 
+import com.example.Models.Room
 import services.geo.Boundary
 import services.geo.Point
 import com.example.Protocols.IntervalInvokable
@@ -8,8 +9,10 @@ import com.example.RoomProviders.Bpru.BpruFetchingStrategy
 import com.example.RoomProviders.Ru09.Ru09FetchingStrategy
 import com.example.Services.Geocoding.GeoService
 import com.example.TelegramBot
+import com.example.exceptions.AdParsingException
 import io.ktor.client.HttpClient
 import java.io.File
+import java.lang.Exception
 import java.util.concurrent.locks.ReentrantLock
 
 
@@ -60,7 +63,14 @@ class AdParsersInvokable(
         newIdentifiers.clear()
 
         fetchingStrategies
-            .flatMap { it.fetchRooms(http) }
+            .flatMap {
+                try {
+                    return@flatMap it.fetchRooms(http)
+                } catch (e: Exception) {
+                    tg.sendMessage("${it::class.java}:: ${e.message}")
+                }
+                return@flatMap ArrayList<Room>()
+            }
             .parallelStream()
             .forEach {
                 if (identifiers.contains(it.uniqueIdentity)) return@forEach
