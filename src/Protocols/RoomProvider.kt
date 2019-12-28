@@ -1,5 +1,6 @@
-package com.example
+package com.example.Protocols
 
+import com.example.Models.Room
 import io.ktor.client.HttpClient
 
 interface RoomProvider {

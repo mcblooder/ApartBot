@@ -1,5 +1,8 @@
 package com.example
 
+import com.example.Invokables.AdParsersInvokable
+import com.example.Protocols.IntervalInvokable
+import com.example.Services.Geocoding.GeoService
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
@@ -7,11 +10,14 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.client.features.UserAgent
 import io.ktor.client.features.cookies.AcceptAllCookiesStorage
+import io.ktor.client.features.cookies.CookiesStorage
 import io.ktor.client.features.cookies.HttpCookies
 import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.html.respondHtml
 import io.ktor.http.ContentType
+import io.ktor.http.Cookie
+import io.ktor.http.Url
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
@@ -21,13 +27,18 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.css.*
 import kotlinx.html.*
 import org.apache.http.HttpHost
-import org.jsoup.Jsoup
 import org.telegram.telegrambots.ApiContextInitializer
 import org.telegram.telegrambots.bots.DefaultBotOptions
 import org.telegram.telegrambots.meta.ApiContext
 import org.telegram.telegrambots.meta.TelegramBotsApi
+import java.lang.RuntimeException
 import java.net.Authenticator
 import java.net.PasswordAuthentication
+import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.TimeUnit
+import kotlin.collections.HashMap
+import kotlin.concurrent.fixedRateTimer
 
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
@@ -37,58 +48,38 @@ fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 fun Application.module(testing: Boolean = false) {
 
     var cookieStorage = AcceptAllCookiesStorage()
+    val client = createHttpClient(cookieStorage)
 
-    val client = HttpClient(Apache) {
-        engine {
-            customizeClient {
-                setProxy(HttpHost("127.0.0.1", 8888))
-            }
-        }
-        install(JsonFeature) {
-            serializer = GsonSerializer()
-            acceptContentTypes = acceptContentTypes + listOf(ContentType.Text.Html)
-        }
-        install(HttpCookies) {
-            storage = cookieStorage
-        }
-        install(UserAgent) {
-            agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36"
-        }
-    }
-
-    val geocodingService = GeocodingService(client)
+    val geocodingService = GeoService(client)
     val tg = createTelegramBot()
-    val adParsersInvokable = AdParsersInvokable()
 
-    runBlocking {
-        // Sample for making a HTTP Client request
-        /*
-        val message = client.post<JsonSampleClass> {
-            url("http://127.0.0.1:8080/path/to/endpoint")
-            contentType(ContentType.Application.Json)
-            body = JsonSampleClass(hello = "world")
+    val invokables = listOf(
+        AdParsersInvokable()
+    )
+
+    printMemoryUsageEveryMinute()
+
+    val runTimes = HashMap<IntervalInvokable, Date>()
+    invokables.forEach {
+        fixedRateTimer(
+            name = UUID.randomUUID().toString(),
+            initialDelay = 0,
+            period = it.interval * 1000L) {
+            runTimes[it] = Date()
+            cookieStorage = AcceptAllCookiesStorage()
+            it.invoke(tg, client, geocodingService)
         }
-        */
     }
 
     routing {
         get("/") {
-//            val kek = client.get<String>("https://pastebin.com/raw/n54ynQY5")
-            //val lal = client.get<EmployeeResponse>("https://api.myjson.com/bins/ofg7w")
-//            call.respondText(lal.employees.joinToString {
-//                it.name + " " + it.email
-//            }, contentType = ContentType.Text.Plain)
-//            val document = Jsoup.connect("https://neagent.info/tomsk/sdam-odno-komnatnuyu-kvartiru/kirovskiy/").get()
-//            val response = document.select("tr[class^=infoblock4]").map {
-//                it.select("span[itemprop=name]").text() + "\t\t\t\t" + it.select("span[itemprop=price]").text()
-//            }
-//            call.respondText(response.joinToString("\n"))
-            cookieStorage = AcceptAllCookiesStorage()
-            GlobalScope.launch {
-                adParsersInvokable.invoke(tg, client, geocodingService)
+            val response = runTimes.map {
+                val date = SimpleDateFormat("dd.MM.yyyy HH:mm").format(it.value)
+                val nextRunMs = (it.value.time + it.key.interval * 1000) - Date().time
+                val nextRun = TimeUnit.MILLISECONDS.toSeconds(nextRunMs).toString()
+                return@map "${it.key.description}: $date | $nextRun"
             }
-
-            call.respondText("Ok\n")
+            call.respondText(response.toString())
         }
 
         get("/html-dsl") {
@@ -120,8 +111,32 @@ fun Application.module(testing: Boolean = false) {
     }
 }
 
-fun createTelegramBot(): TelegramBot {
+fun printMemoryUsageEveryMinute() {
+    fixedRateTimer(
+        name = "memoryPrint",
+        initialDelay = 0 ,
+        period = 60000) {
+        val memory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
+        println("${Date().time}| Memory used: ${memory / 1024.0 / 1024.0 } mb")
+    }
+}
 
+fun createHttpClient(cookieStorage: CookiesStorage): HttpClient {
+    return HttpClient(Apache) {
+        install(JsonFeature) {
+            serializer = GsonSerializer()
+            acceptContentTypes = acceptContentTypes + listOf(ContentType.Text.Html)
+        }
+        install(HttpCookies) {
+            storage = cookieStorage
+        }
+        install(UserAgent) {
+            agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36"
+        }
+    }
+}
+
+fun createTelegramBot(): TelegramBot {
     Authenticator.setDefault(object : Authenticator() {
         override fun getPasswordAuthentication(): PasswordAuthentication {
             return PasswordAuthentication("mag", "EeChe9ow8Vei".toCharArray())

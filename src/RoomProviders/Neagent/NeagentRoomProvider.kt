@@ -1,9 +1,10 @@
 package com.example.RoomProviders.Neagent
 
-import com.example.Room
-import com.example.RoomProvider
+import com.example.Models.Room
+import com.example.Protocols.RoomProvider
 import io.ktor.client.HttpClient
 import io.ktor.client.call.call
+import io.ktor.client.features.cookies.cookies
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -26,11 +27,10 @@ class NeagentRoomProvider: RoomProvider {
                 method = HttpMethod.Get
             }
 
-            val featureCollection = http.get<FeatureCollection>("https://neagent.info/map/load/?b=56.45498140215208%2C84.96683794263605%2C56.462115714391274%2C84.97833925489186&z=17&t=arenda&sid=45") {
+            val featureCollection = http.get<FeatureCollection>("https://neagent.info/map/load/?b=56.454937294900915,84.96891904692384,56.45991542231753,84.97898269514774&z=17&t=arenda&sid=45") {
                 accept(ContentType.Application.Json)
                 header("X-Requested-With", "XMLHttpRequest")
                 header("Referer", "https://neagent.info/map/tomsk/arenda/sdam-odno-komnatnuyu-kvartiru")
-
             }
 
             return@runBlocking featureCollection.features.map {

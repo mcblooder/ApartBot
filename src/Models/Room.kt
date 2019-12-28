@@ -1,4 +1,4 @@
-package com.example
+package com.example.Models
 
 data class Room(
     val id: String,
@@ -8,4 +8,7 @@ data class Room(
     var lat: Double?,
     var lon: Double?,
     val url: String
-)
+) {
+    val uniqueIdentity: String
+        get() = source + "_" + id
+}
