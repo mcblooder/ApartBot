@@ -7,5 +7,5 @@ import io.ktor.client.HttpClient
 interface IntervalInvokable {
     val interval: Int
     val description: String
-    fun invoke(tg: TelegramBot, http: HttpClient, gc: GeoService)
+    fun invoke()
 }

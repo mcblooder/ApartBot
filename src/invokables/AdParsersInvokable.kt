@@ -1,11 +1,11 @@
 package com.example.Invokables
 
-import Services.Geo.Boundary
-import Services.Geo.Point
+import services.geo.Boundary
+import services.geo.Point
 import com.example.Protocols.IntervalInvokable
-import com.example.Protocols.RoomProvider
-import com.example.RoomProviders.Bpru.BpruRoomProvider
-import com.example.RoomProviders.Ru09.Ru09RoomProvider
+import com.example.Protocols.FetchingStrategy
+import com.example.RoomProviders.Bpru.BpruFetchingStrategy
+import com.example.RoomProviders.Ru09.Ru09FetchingStrategy
 import com.example.Services.Geocoding.GeoService
 import com.example.TelegramBot
 import io.ktor.client.HttpClient
@@ -13,7 +13,10 @@ import java.io.File
 import java.util.concurrent.locks.ReentrantLock
 
 
-class AdParsersInvokable: IntervalInvokable {
+class AdParsersInvokable(
+    private val tg: TelegramBot,
+    private val http: HttpClient,
+    private val gc: GeoService): IntervalInvokable {
 
     private val polygonOfInterest = Boundary(arrayOf(
         Point(56.455492, 84.973916),
@@ -25,10 +28,10 @@ class AdParsersInvokable: IntervalInvokable {
         Point(56.456370, 84.975742)
     ))
 
-    private val roomProviders: List<RoomProvider> = listOf(
+    private val fetchingStrategies: List<FetchingStrategy> = listOf(
 //        NeagentRoomProvider(),
-        Ru09RoomProvider(),
-        BpruRoomProvider()
+        Ru09FetchingStrategy(),
+        BpruFetchingStrategy()
     )
 
     /**
@@ -44,7 +47,7 @@ class AdParsersInvokable: IntervalInvokable {
     private val newIdentifiers = ArrayList<String>()
 
     @Synchronized
-    override fun invoke(tg: TelegramBot, http: HttpClient, gc: GeoService) {
+    override fun invoke() {
         val idsFile = File("ids.txt")
 
         if (!idsFile.exists()) {
@@ -56,7 +59,7 @@ class AdParsersInvokable: IntervalInvokable {
         val identifiers = idsFile.readLines()
         newIdentifiers.clear()
 
-        roomProviders
+        fetchingStrategies
             .flatMap { it.fetchRooms(http) }
             .parallelStream()
             .forEach {

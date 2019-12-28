@@ -1,11 +1,11 @@
 package com.example.RoomProviders.Ru09
 
 import com.example.Models.Room
-import com.example.Protocols.RoomProvider
+import com.example.Protocols.FetchingStrategy
 import io.ktor.client.HttpClient
 import org.jsoup.Jsoup
 
-class Ru09RoomProvider: RoomProvider {
+class Ru09FetchingStrategy: FetchingStrategy {
 
     override val uniquePrefix: String
         get() = "ru09"

@@ -50,11 +50,11 @@ fun Application.module(testing: Boolean = false) {
     var cookieStorage = AcceptAllCookiesStorage()
     val client = createHttpClient(cookieStorage)
 
-    val geocodingService = GeoService(client)
+    val geoService = GeoService(client)
     val tg = createTelegramBot()
 
     val invokables = listOf(
-        AdParsersInvokable()
+        AdParsersInvokable(tg, client, geoService)
     )
 
     printMemoryUsageEveryMinute()
@@ -67,7 +67,7 @@ fun Application.module(testing: Boolean = false) {
             period = it.interval * 1000L) {
             runTimes[it] = Date()
             cookieStorage = AcceptAllCookiesStorage()
-            it.invoke(tg, client, geocodingService)
+            it.invoke()
         }
     }
 

@@ -1,4 +1,4 @@
-package Services.Geo;
+package services.geo;
 
 public class Boundary {
     private final Point[] points; // Points making up the boundary

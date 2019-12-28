@@ -1,10 +1,9 @@
 package com.example.RoomProviders.Neagent
 
 import com.example.Models.Room
-import com.example.Protocols.RoomProvider
+import com.example.Protocols.FetchingStrategy
 import io.ktor.client.HttpClient
 import io.ktor.client.call.call
-import io.ktor.client.features.cookies.cookies
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -12,7 +11,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 
 
-class NeagentRoomProvider: RoomProvider {
+class NeagentFetchingStrategy: FetchingStrategy {
 
     override val uniquePrefix: String
         get() = "neagent"

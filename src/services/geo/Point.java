@@ -1,4 +1,4 @@
-package Services.Geo;
+package services.geo;
 
 public class Point {
     public final double x;
