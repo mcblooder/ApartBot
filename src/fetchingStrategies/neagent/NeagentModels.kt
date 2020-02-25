@@ -1,4 +1,4 @@
-package com.example.RoomProviders.Neagent
+package com.example.fetchingStrategies.neagent
 
 import com.google.gson.annotations.SerializedName
 

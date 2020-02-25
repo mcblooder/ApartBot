@@ -1,8 +1,9 @@
 package com.example
 
-import com.example.Invokables.AdParsersInvokable
-import com.example.Protocols.IntervalInvokable
-import com.example.Services.Geocoding.GeoService
+import com.example.invokables.RentApartmentsAdParsersInvokable
+import com.example.invokables.SaleApartmentsAdParsersInvokable
+import com.example.protocols.IntervalInvokable
+import com.example.services.geo.GeoService
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
@@ -14,24 +15,16 @@ import io.ktor.client.features.cookies.CookiesStorage
 import io.ktor.client.features.cookies.HttpCookies
 import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
-import io.ktor.html.respondHtml
 import io.ktor.http.ContentType
-import io.ktor.http.Cookie
-import io.ktor.http.Url
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.css.*
 import kotlinx.html.*
-import org.apache.http.HttpHost
 import org.telegram.telegrambots.ApiContextInitializer
 import org.telegram.telegrambots.bots.DefaultBotOptions
 import org.telegram.telegrambots.meta.ApiContext
 import org.telegram.telegrambots.meta.TelegramBotsApi
-import java.lang.RuntimeException
 import java.net.Authenticator
 import java.net.PasswordAuthentication
 import java.text.SimpleDateFormat
@@ -39,7 +32,6 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.collections.HashMap
 import kotlin.concurrent.fixedRateTimer
-
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -54,22 +46,30 @@ fun Application.module(testing: Boolean = false) {
     val tg = createTelegramBot()
 
     val invokables = listOf(
-        AdParsersInvokable(tg, client, geoService)
+        RentApartmentsAdParsersInvokable(tg, client, geoService),
+        SaleApartmentsAdParsersInvokable(tg, client, geoService)
     )
 
     printMemoryUsageEveryMinute()
 
     val runTimes = HashMap<IntervalInvokable, Date>()
+
+    cookieStorage = AcceptAllCookiesStorage()
+
     invokables.forEach {
-        fixedRateTimer(
-            name = UUID.randomUUID().toString(),
-            initialDelay = 0,
-            period = it.interval * 1000L) {
-            runTimes[it] = Date()
-            cookieStorage = AcceptAllCookiesStorage()
-            it.invoke()
-        }
+        runTimes[it] = Date()
+        it.invoke()
     }
+//    invokables.forEach {
+//        fixedRateTimer(
+//            name = UUID.randomUUID().toString(),
+//            initialDelay = 0,
+//            period = it.interval * 1000L) {
+//            runTimes[it] = Date()
+//            cookieStorage = AcceptAllCookiesStorage()
+//            it.invoke()
+//        }
+//    }
 
     routing {
         get("/") {
@@ -80,33 +80,6 @@ fun Application.module(testing: Boolean = false) {
                 return@map "${it.key.description}: $date | $nextRun"
             }
             call.respondText(response.toString())
-        }
-
-        get("/html-dsl") {
-            call.respondHtml {
-                body {
-                    h1 { +"HTML" }
-                    ul {
-                        for (n in 1..10) {
-                            li { +"$n" }
-                        }
-                    }
-                }
-            }
-        }
-
-        get("/styles.css") {
-            call.respondCss {
-                body {
-                    backgroundColor = Color.red
-                }
-                p {
-                    fontSize = 2.em
-                }
-                rule("p.myclass") {
-                    color = Color.blue
-                }
-            }
         }
     }
 }

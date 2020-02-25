@@ -1,6 +1,6 @@
-package com.example.Protocols
+package com.example.protocols
 
-import com.example.Models.Room
+import com.example.models.Room
 import io.ktor.client.HttpClient
 
 interface FetchingStrategy {

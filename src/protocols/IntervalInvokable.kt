@@ -1,8 +1,4 @@
-package com.example.Protocols
-
-import com.example.Services.Geocoding.GeoService
-import com.example.TelegramBot
-import io.ktor.client.HttpClient
+package com.example.protocols
 
 interface IntervalInvokable {
     val interval: Int

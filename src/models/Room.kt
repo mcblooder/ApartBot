@@ -1,10 +1,10 @@
-package com.example.Models
+package com.example.models
 
 data class Room(
     val id: String,
     val price: String,
     val source: String,
-    val address: String,
+    var address: String,
     var lat: Double?,
     var lon: Double?,
     val url: String

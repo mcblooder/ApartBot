@@ -1,25 +1,27 @@
-package com.example.Invokables
+package com.example.invokables
 
-import com.example.Models.Room
 import services.geo.Boundary
 import services.geo.Point
-import com.example.Protocols.IntervalInvokable
-import com.example.Protocols.FetchingStrategy
-import com.example.RoomProviders.Bpru.BpruFetchingStrategy
-import com.example.RoomProviders.Ru09.Ru09FetchingStrategy
-import com.example.Services.Geocoding.GeoService
 import com.example.TelegramBot
-import com.example.exceptions.AdParsingException
+import com.example.fetchingStrategies.avito.RentAvitoFetchingStrategy
+import com.example.fetchingStrategies.bpru.BpruFetchingStrategy
+import com.example.fetchingStrategies.neagent.NeagentFetchingStrategy
+import com.example.fetchingStrategies.ru09.RentRu09FetchingStrategy
+import com.example.models.Room
+import com.example.protocols.FetchingStrategy
+import com.example.protocols.IntervalInvokable
+import com.example.services.geo.GeoService
 import io.ktor.client.HttpClient
 import java.io.File
 import java.lang.Exception
 import java.util.concurrent.locks.ReentrantLock
 
 
-class AdParsersInvokable(
+class RentApartmentsAdParsersInvokable(
     private val tg: TelegramBot,
     private val http: HttpClient,
-    private val gc: GeoService): IntervalInvokable {
+    private val gc: GeoService
+): IntervalInvokable {
 
     private val polygonOfInterest = Boundary(arrayOf(
         Point(56.455492, 84.973916),
@@ -32,9 +34,10 @@ class AdParsersInvokable(
     ))
 
     private val fetchingStrategies: List<FetchingStrategy> = listOf(
-//        NeagentRoomProvider(),
-        Ru09FetchingStrategy(),
-        BpruFetchingStrategy()
+        RentAvitoFetchingStrategy(),
+        BpruFetchingStrategy(),
+        RentRu09FetchingStrategy(),
+        NeagentFetchingStrategy()
     )
 
     /**
@@ -45,13 +48,13 @@ class AdParsersInvokable(
         get() = 600
 
     override val description: String
-        get() = "Apartment Ad WebSites Parser"
+        get() = "Rent Apartment Ad WebSites Parser"
 
     private val newIdentifiers = ArrayList<String>()
 
     @Synchronized
     override fun invoke() {
-        val idsFile = File("ids.txt")
+        val idsFile = File("rent_ids.txt")
 
         if (!idsFile.exists()) {
             idsFile.createNewFile()
@@ -67,7 +70,7 @@ class AdParsersInvokable(
                 try {
                     return@flatMap it.fetchRooms(http)
                 } catch (e: Exception) {
-                    tg.sendMessage("${it::class.java}:: ${e.message}")
+                    tg.sendMessage("${it::class.java}:: ${e.message}", chatId = 114650278L)
                 }
                 return@flatMap ArrayList<Room>()
             }
@@ -79,18 +82,28 @@ class AdParsersInvokable(
                 newIdentifiers.add(it.uniqueIdentity)
                 locker.unlock()
 
-                val text = "#${it.source}\n${it.address}, ${it.price} ₽\n${it.url}"
-                val geoPoints = gc.encode(it.address)?.point
+                val geoPoints = ArrayList<Double>()
+
+                if (it.lat != null && it.lon != null) {
+                    it.address = gc.decode(it.lat!!, it.lon!!).shortText
+                    geoPoints.add(it.lat!!)
+                    geoPoints.add(it.lon!!)
+                } else {
+                    gc.encode(it.address)?.point.let { points ->
+                        geoPoints.addAll(points!!)
+                    }
+                }
 
                 var isInteresting = false
 
-                if (geoPoints != null && geoPoints.count() >= 2) {
+                if (geoPoints.count() >= 2) {
                     isInteresting = polygonOfInterest.contains(Point(geoPoints[1], geoPoints[0]))
                 }
 
-                val fire = "\uD83D\uDD25 "
+                val text = "#${it.source}\n${it.address}, ${it.price} ₽\n${it.url}"
+                val fire = "\uD83D\uDD25 #hot "
 
-                tg.sendMessage(if (isInteresting) fire + text else text)
+                tg.sendMessage(if (isInteresting) fire + text else text, chatId = -487315775L)
             }
 
         val textToAppend = newIdentifiers.map {

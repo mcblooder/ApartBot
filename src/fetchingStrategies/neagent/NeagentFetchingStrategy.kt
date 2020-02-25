@@ -1,7 +1,7 @@
-package com.example.RoomProviders.Neagent
+package com.example.fetchingStrategies.neagent
 
-import com.example.Models.Room
-import com.example.Protocols.FetchingStrategy
+import com.example.models.Room
+import com.example.protocols.FetchingStrategy
 import io.ktor.client.HttpClient
 import io.ktor.client.call.call
 import io.ktor.client.request.accept
@@ -9,6 +9,8 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class NeagentFetchingStrategy: FetchingStrategy {
@@ -17,6 +19,11 @@ class NeagentFetchingStrategy: FetchingStrategy {
         get() = "neagent"
 
     override fun fetchRooms(http: HttpClient): List<Room> {
+
+        if (Date().minutes > 5) {
+            return ArrayList<Room>()
+        }
+
         val rooms = runBlocking {
             http.call("https://neagent.info/") {
                 method = HttpMethod.Get

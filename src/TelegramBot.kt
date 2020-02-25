@@ -20,7 +20,7 @@ class TelegramBot(options: DefaultBotOptions?) : TelegramLongPollingBot(options)
         println(update)
     }
 
-    fun sendMessage(text: String, chatId: Long = RODION_CHAT_ID) {
+    fun sendMessage(text: String, chatId: Long) {
         val sendMessage = SendMessage(chatId, text)
 
         try {
@@ -28,9 +28,5 @@ class TelegramBot(options: DefaultBotOptions?) : TelegramLongPollingBot(options)
         } catch (e: TelegramApiException) {
             e.printStackTrace()
         }
-    }
-
-    companion object {
-        const val RODION_CHAT_ID = 114650278L
     }
 }

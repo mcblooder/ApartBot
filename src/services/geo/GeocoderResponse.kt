@@ -1,8 +1,8 @@
-package com.example.Services.Geocoding
+package com.example.services.geo;
 
 import com.google.gson.annotations.SerializedName
 
-data class GeoDecoderResponse (
+data class GeocoderResponse (
     val city: String?,
 
     @SerializedName("full_text")

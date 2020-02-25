@@ -1,6 +1,5 @@
-package com.example.Services.Geocoding
+package com.example.services.geo;
 
-import com.google.gson.annotations.SerializedName
 import io.ktor.client.HttpClient
 import io.ktor.client.request.accept
 import io.ktor.client.request.header
@@ -12,9 +11,9 @@ import kotlin.random.Random
 
 class GeoService(val http: HttpClient) {
 
-    fun decode(lat: Double, lon: Double): GeoDecoderResponse {
+    fun decode(lat: Double, lon: Double): GeocoderResponse {
         return runBlocking {
-            val response = http.post<GeoDecoderResponse>("https://taxi.yandex.ru/3.0/nearestposition/") {
+            val response = http.post<GeocoderResponse>("https://taxi.yandex.ru/3.0/nearestposition/") {
                 accept(ContentType.Application.Json)
                 header("x-requested-with", "XMLHttpRequest")
                 header("x-requested-uri", "https://taxi.yandex.ru/")

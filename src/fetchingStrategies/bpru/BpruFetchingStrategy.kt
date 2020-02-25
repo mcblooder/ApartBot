@@ -1,8 +1,8 @@
-package com.example.RoomProviders.Bpru
+package com.example.fetchingStrategies.bpru
 
-import com.example.Models.Room
-import com.example.Protocols.FetchingStrategy
 import com.example.exceptions.AdParsingException
+import com.example.models.Room
+import com.example.protocols.FetchingStrategy
 import io.ktor.client.HttpClient
 import org.jsoup.Jsoup
 
