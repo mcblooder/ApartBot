@@ -90,14 +90,14 @@ class RentApartmentsAdParsersInvokable(
                     geoPoints.add(it.lon!!)
                 } else {
                     gc.encode(it.address)?.point.let { points ->
-                        geoPoints.addAll(points!!)
+                        geoPoints.addAll(points!!.reversed())
                     }
                 }
 
                 var isInteresting = false
 
                 if (geoPoints.count() >= 2) {
-                    isInteresting = polygonOfInterest.contains(Point(geoPoints[1], geoPoints[0]))
+                    isInteresting = polygonOfInterest.contains(Point(geoPoints[0], geoPoints[1]))
                 }
 
                 val text = "#${it.source}\n${it.address}, ${it.price} ₽\n${it.url}"
