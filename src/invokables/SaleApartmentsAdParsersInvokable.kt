@@ -3,6 +3,7 @@ package com.example.invokables
 import com.example.TelegramBot
 import com.example.models.Room
 import com.example.fetchingStrategies.avito.SaleAvitoFetchingStrategy
+import com.example.fetchingStrategies.cian.SaleCianFetchingStrategy
 import com.example.fetchingStrategies.ru09.SaleRu09FetchingStrategy
 import com.example.protocols.FetchingStrategy
 import com.example.protocols.IntervalInvokable
@@ -46,6 +47,7 @@ class SaleApartmentsAdParsersInvokable(
     ))
 
     private val fetchingStrategies: List<FetchingStrategy> = listOf(
+        SaleCianFetchingStrategy(),
         SaleAvitoFetchingStrategy(),
         SaleRu09FetchingStrategy()
     )

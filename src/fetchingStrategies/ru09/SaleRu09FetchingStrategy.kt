@@ -12,7 +12,7 @@ class SaleRu09FetchingStrategy: FetchingStrategy {
         get() = "ru09"
 
     override fun fetchRooms(http: HttpClient): List<Room> {
-        val document = Jsoup.connect("https://www.tomsk.ru09.ru/realty/?type=1&otype=1&district[1]=on&perpage=50").get()
+        val document = Jsoup.connect("https://www.tomsk.ru09.ru/realty/?perpage=50&type=1&otype=1&price[max]=4500&knum[2]=on&knum[3]=on&knum[4]=on&is_studio[value]=on&district[1]=on&scom[min]=35&mat[1]=on&mat[2]=on&mat[3]=on&mat[4]=on&mat[6]=on&mat[7]=on&mat[8]=on").get()
 
         val ids = document.select("a[class=visited_ads]").map {
             it.attr("href").split("=").last()

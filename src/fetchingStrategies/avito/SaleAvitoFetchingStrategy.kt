@@ -15,7 +15,7 @@ class SaleAvitoFetchingStrategy: FetchingStrategy {
 
     override fun fetchRooms(http: HttpClient): List<Room> {
         val rooms = runBlocking {
-            val avitoResponse = http.get<AvitoResponse>("https://m.avito.ru/api/9/items?key=af0deccbgcgidddjgnvljitntccdduijhdinfgjgfjir&categoryId=24&params[201]=1059&locationId=657600&districtId[]=370&params[549][]=5696&params[549][]=5697&params[549][]=5698&params[549][]=414718&params[549][]=5695&sort=date&withImagesOnly=false&page=1&display=list&limit=30") {
+            val avitoResponse = http.get<AvitoResponse>("https://m.avito.ru/api/9/items?key=af0deccbgcgidddjgnvljitntccdduijhdinfgjgfjir&categoryId=24&params[201]=1059&locationId=657600&districtId[]=370&priceMax=4500000&params[549][]=5697&params[549][]=5698&params[549][]=414718&params[549][]=5695&params[549][]=5699&params[578-from-int]=35&params[498][]=5244&params[498][]=5247&params[498][]=5245&params[498][]=5246&sort=date&withImagesOnly=false&page=1&display=list&limit=30") {
                 accept(ContentType.Application.Json)
             }
 
