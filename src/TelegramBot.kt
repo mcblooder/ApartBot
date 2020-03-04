@@ -21,6 +21,8 @@ class TelegramBot(options: DefaultBotOptions?) : TelegramLongPollingBot(options)
     }
 
     fun sendMessage(text: String, chatId: Long) {
+//        println(text)
+//        return;
         val sendMessage = SendMessage(chatId, text)
 
         try {
