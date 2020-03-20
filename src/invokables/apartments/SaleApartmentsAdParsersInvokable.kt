@@ -1,30 +1,22 @@
 package com.example.invokables.apartments
 
 import com.example.TelegramBot
-import com.example.models.Room
 import com.example.fetchingStrategies.avito.SaleAvitoFetchingStrategy
 import com.example.fetchingStrategies.cian.SaleCianFetchingStrategy
 import com.example.fetchingStrategies.ru09.SaleRu09FetchingStrategy
-import com.example.invokables.apartments.storages.UniqueKeyStorage
 import com.example.persistent.DB
-import com.example.protocols.FetchingStrategy
-import com.example.protocols.IntervalInvokable
 import com.example.services.geo.GeoService
 import io.ktor.client.HttpClient
 import services.geo.Boundary
 import services.geo.Point
-import java.io.File
-import java.lang.Exception
-import java.util.concurrent.locks.ReentrantLock
 
-class SaleApartmentsAdParsersInvokable(
-    private val tg: TelegramBot,
-    private val http: HttpClient,
-    private val gc: GeoService,
-    private val db: DB
-): IntervalInvokable {
+class SaleApartmentsAdParsersInvokable(tg: TelegramBot, http: HttpClient, gc: GeoService, db: DB) :
+    ApartmentsAdParsersInvokable(tg, http, gc, db) {
 
-    private val polygonOfInterest = Boundary(arrayOf(
+    override var description = "Sale Apartment Ad WebSites Parser"
+    override val groupChatId = -270950399L
+
+    override val polygonOfInterest = Boundary(arrayOf(
         Point(56.4668584, 84.98375950000002),
         Point(56.4640134, 84.98933849999997),
         Point(56.4621641, 84.99251429999998),
@@ -49,67 +41,9 @@ class SaleApartmentsAdParsersInvokable(
         Point(56.4669474, 84.98374360000003)
     ))
 
-    private val fetchingStrategies: List<FetchingStrategy> = listOf(
+    override val fetchingStrategies = listOf(
         SaleCianFetchingStrategy(),
         SaleAvitoFetchingStrategy(),
         SaleRu09FetchingStrategy()
     )
-
-    private val apartmentsStorage = UniqueKeyStorage(db)
-
-    /**
-     * @param interval
-     * Interval in seconds
-     */
-    override val interval: Int
-        get() = 600
-
-    override val description: String
-        get() = "Sale Apartment Ad WebSites Parser"
-
-    @Synchronized
-    override fun invoke() {
-        val locker = ReentrantLock()
-
-        fetchingStrategies
-            .flatMap {
-                try {
-                    return@flatMap it.fetchRooms(http)
-                } catch (e: Exception) {
-                    tg.sendMessage("${it::class.java}:: ${e.message}", chatId = 114650278L)
-                }
-                return@flatMap ArrayList<Room>()
-            }
-            .parallelStream()
-            .forEach {
-                if (apartmentsStorage.checkKeyExist(it.uniqueIdentity)) return@forEach
-
-                locker.lock()
-                apartmentsStorage.addUniqueKey(it.uniqueIdentity)
-                locker.unlock()
-
-                val geoPoints = ArrayList<Double>()
-
-                if (it.lat != null && it.lon != null) {
-                    it.address = gc.decode(it.lat!!, it.lon!!).shortText
-                    geoPoints.add(it.lat!!)
-                    geoPoints.add(it.lon!!)
-                } else {
-                    gc.encode(it.address)?.point.let { points ->
-                        geoPoints.addAll(points!!.reversed())
-                    }
-                }
-
-                var isInteresting = false
-
-                if (geoPoints.count() >= 2) {
-                    isInteresting = polygonOfInterest.contains(Point(geoPoints[0], geoPoints[1]))
-                }
-
-                val text = "#${it.source}\n${it.address}, ${it.price} ₽\n${it.url}"
-                val fire = "\uD83D\uDD25 #hot "
-
-                tg.sendMessage(if (isInteresting) fire + text else text, chatId = -270950399L)
-            }
-    }
 }

@@ -20,6 +20,7 @@ import io.ktor.http.ContentType
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
+import io.ktor.util.KtorExperimentalAPI
 import org.telegram.telegrambots.ApiContextInitializer
 import org.telegram.telegrambots.bots.DefaultBotOptions
 import org.telegram.telegrambots.meta.ApiContext
@@ -36,12 +37,10 @@ import kotlin.concurrent.fixedRateTimer
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
-@Suppress("unused") // Referenced in application.conf
-@kotlin.jvm.JvmOverloads
-fun Application.module(testing: Boolean = false) {
+@KtorExperimentalAPI
+fun Application.module() {
 
-    var cookieStorage = AcceptAllCookiesStorage()
-    val client = createHttpClient(cookieStorage)
+    val client = createHttpClient(AcceptAllCookiesStorage())
 
     val geoService = GeoService(client)
     val db = DB()
@@ -66,8 +65,6 @@ fun Application.module(testing: Boolean = false) {
     printMemoryUsageEveryMinute()
 
     val runTimes = HashMap<IntervalInvokable, Date>()
-
-    cookieStorage = AcceptAllCookiesStorage()
 
     invokables.forEach {
         runTimes[it] = Date()
@@ -110,6 +107,7 @@ fun printMemoryUsageEveryMinute() {
     }
 }
 
+@KtorExperimentalAPI
 fun createHttpClient(cookieStorage: CookiesStorage): HttpClient {
     return HttpClient(Apache) {
         install(JsonFeature) {
