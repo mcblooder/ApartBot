@@ -6,3 +6,5 @@ ids.txt
 *.iml
 *.ipr
 *.iws
+
+data.db

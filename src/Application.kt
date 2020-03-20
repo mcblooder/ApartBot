@@ -1,11 +1,12 @@
 package com.example
 
-import com.example.invokables.RentApartmentsAdParsersInvokable
-import com.example.invokables.SaleApartmentsAdParsersInvokable
+import com.example.invokables.apartments.RentApartmentsAdParsersInvokable
+import com.example.invokables.apartments.SaleApartmentsAdParsersInvokable
+import com.example.invokables.apartments.storages.UniqueKeyStorage
+import com.example.persistent.DB
 import com.example.protocols.IntervalInvokable
 import com.example.services.geo.GeoService
 import io.ktor.application.Application
-import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
@@ -19,17 +20,17 @@ import io.ktor.http.ContentType
 import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
-import kotlinx.css.*
-import kotlinx.html.*
 import org.telegram.telegrambots.ApiContextInitializer
 import org.telegram.telegrambots.bots.DefaultBotOptions
 import org.telegram.telegrambots.meta.ApiContext
 import org.telegram.telegrambots.meta.TelegramBotsApi
+import java.io.File
 import java.net.Authenticator
 import java.net.PasswordAuthentication
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
 import kotlin.collections.HashMap
 import kotlin.concurrent.fixedRateTimer
 
@@ -43,11 +44,23 @@ fun Application.module(testing: Boolean = false) {
     val client = createHttpClient(cookieStorage)
 
     val geoService = GeoService(client)
+    val db = DB()
+
     val tg = createTelegramBot()
 
     val invokables = listOf(
-        RentApartmentsAdParsersInvokable(tg, client, geoService),
-        SaleApartmentsAdParsersInvokable(tg, client, geoService)
+        RentApartmentsAdParsersInvokable(
+            tg,
+            client,
+            geoService,
+            db
+        ),
+        SaleApartmentsAdParsersInvokable(
+            tg,
+            client,
+            geoService,
+            db
+        )
     )
 
     printMemoryUsageEveryMinute()
@@ -60,16 +73,19 @@ fun Application.module(testing: Boolean = false) {
         runTimes[it] = Date()
         it.invoke()
     }
-//    invokables.forEach {
-//        fixedRateTimer(
-//            name = UUID.randomUUID().toString(),
-//            initialDelay = 0,
-//            period = it.interval * 1000L) {
-//            runTimes[it] = Date()
-//            cookieStorage = AcceptAllCookiesStorage()
-//            it.invoke()
-//        }
-//    }
+
+    /*
+    invokables.forEach {
+        fixedRateTimer(
+            name = UUID.randomUUID().toString(),
+            initialDelay = 0,
+            period = it.interval * 1000L) {
+            runTimes[it] = Date()
+            cookieStorage = AcceptAllCookiesStorage()
+            it.invoke()
+        }
+    }
+    */
 
     routing {
         get("/") {
@@ -130,20 +146,4 @@ fun createTelegramBot(): TelegramBot {
     botsApi.registerBot(bot)
 
     return bot
-}
-
-data class JsonSampleClass(val hello: String)
-
-fun FlowOrMetaDataContent.styleCss(builder: CSSBuilder.() -> Unit) {
-    style(type = ContentType.Text.CSS.toString()) {
-        +CSSBuilder().apply(builder).toString()
-    }
-}
-
-fun CommonAttributeGroupFacade.style(builder: CSSBuilder.() -> Unit) {
-    this.style = CSSBuilder().apply(builder).toString().trim()
-}
-
-suspend inline fun ApplicationCall.respondCss(builder: CSSBuilder.() -> Unit) {
-    this.respondText(CSSBuilder().apply(builder).toString(), ContentType.Text.CSS)
 }

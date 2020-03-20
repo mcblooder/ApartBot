@@ -1,44 +1,61 @@
-package com.example.invokables
+package com.example.invokables.apartments
 
-import services.geo.Boundary
-import services.geo.Point
 import com.example.TelegramBot
-import com.example.fetchingStrategies.avito.RentAvitoFetchingStrategy
-import com.example.fetchingStrategies.bpru.BpruFetchingStrategy
-import com.example.fetchingStrategies.neagent.NeagentFetchingStrategy
-import com.example.fetchingStrategies.ru09.RentRu09FetchingStrategy
 import com.example.models.Room
+import com.example.fetchingStrategies.avito.SaleAvitoFetchingStrategy
+import com.example.fetchingStrategies.cian.SaleCianFetchingStrategy
+import com.example.fetchingStrategies.ru09.SaleRu09FetchingStrategy
+import com.example.invokables.apartments.storages.UniqueKeyStorage
+import com.example.persistent.DB
 import com.example.protocols.FetchingStrategy
 import com.example.protocols.IntervalInvokable
 import com.example.services.geo.GeoService
 import io.ktor.client.HttpClient
+import services.geo.Boundary
+import services.geo.Point
 import java.io.File
 import java.lang.Exception
 import java.util.concurrent.locks.ReentrantLock
 
-
-class RentApartmentsAdParsersInvokable(
+class SaleApartmentsAdParsersInvokable(
     private val tg: TelegramBot,
     private val http: HttpClient,
-    private val gc: GeoService
+    private val gc: GeoService,
+    private val db: DB
 ): IntervalInvokable {
 
     private val polygonOfInterest = Boundary(arrayOf(
-        Point(56.455492, 84.973916),
-        Point(56.457597, 84.971470),
-        Point(56.457856, 84.972470),
-        Point(56.458456, 84.971696),
-        Point(56.459160, 84.973582),
-        Point(56.458697, 84.975691),
-        Point(56.456370, 84.975742)
+        Point(56.4668584, 84.98375950000002),
+        Point(56.4640134, 84.98933849999997),
+        Point(56.4621641, 84.99251429999998),
+        Point(56.4603147, 84.98951019999998),
+        Point(56.4593662, 84.98745020000001),
+        Point(56.4568526, 84.98238620000001),
+        Point(56.4549081, 84.9756056),
+        Point(56.453435, 84.97729809999998),
+        Point(56.4517274, 84.97802760000002),
+        Point(56.4513242, 84.97734100000002),
+        Point(56.4516325, 84.97540980000002),
+        Point(56.4531029, 84.97540980000002),
+        Point(56.4537433, 84.97433690000003),
+        Point(56.4540516, 84.9721912),
+        Point(56.4550239, 84.97116119999998),
+        Point(56.4552786, 84.96866820000002),
+        Point(56.4553023, 84.95120170000001),
+        Point(56.4715693, 84.95032579999997),
+        Point(56.4716175, 84.9653758),
+        Point(56.4690336, 84.96541869999999),
+        Point(56.4689151, 84.9813833),
+        Point(56.4669474, 84.98374360000003)
     ))
 
     private val fetchingStrategies: List<FetchingStrategy> = listOf(
-        RentAvitoFetchingStrategy(),
-        BpruFetchingStrategy(),
-        RentRu09FetchingStrategy(),
-        NeagentFetchingStrategy()
+        SaleCianFetchingStrategy(),
+        SaleAvitoFetchingStrategy(),
+        SaleRu09FetchingStrategy()
     )
+
+    private val apartmentsStorage = UniqueKeyStorage(db)
 
     /**
      * @param interval
@@ -48,22 +65,11 @@ class RentApartmentsAdParsersInvokable(
         get() = 600
 
     override val description: String
-        get() = "Rent Apartment Ad WebSites Parser"
-
-    private val newIdentifiers = ArrayList<String>()
+        get() = "Sale Apartment Ad WebSites Parser"
 
     @Synchronized
     override fun invoke() {
-        val idsFile = File("rent_ids.txt")
-
-        if (!idsFile.exists()) {
-            idsFile.createNewFile()
-        }
-
         val locker = ReentrantLock()
-
-        val identifiers = idsFile.readLines()
-        newIdentifiers.clear()
 
         fetchingStrategies
             .flatMap {
@@ -76,10 +82,10 @@ class RentApartmentsAdParsersInvokable(
             }
             .parallelStream()
             .forEach {
-                if (identifiers.contains(it.uniqueIdentity)) return@forEach
+                if (apartmentsStorage.checkKeyExist(it.uniqueIdentity)) return@forEach
 
                 locker.lock()
-                newIdentifiers.add(it.uniqueIdentity)
+                apartmentsStorage.addUniqueKey(it.uniqueIdentity)
                 locker.unlock()
 
                 val geoPoints = ArrayList<Double>()
@@ -103,14 +109,7 @@ class RentApartmentsAdParsersInvokable(
                 val text = "#${it.source}\n${it.address}, ${it.price} ₽\n${it.url}"
                 val fire = "\uD83D\uDD25 #hot "
 
-                tg.sendMessage(if (isInteresting) fire + text else text, chatId = -487315775L)
+                tg.sendMessage(if (isInteresting) fire + text else text, chatId = -270950399L)
             }
-
-        val textToAppend = newIdentifiers.map {
-            "${it}\n"
-        }.joinToString("")
-
-        idsFile.appendText(textToAppend)
     }
 }
-
