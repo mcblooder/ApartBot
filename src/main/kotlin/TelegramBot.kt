@@ -22,7 +22,7 @@ class TelegramBot(options: DefaultBotOptions?) : TelegramLongPollingBot(options)
     }
 
     fun sendLocation(latitude: Float, longitude: Float, chatId: Long) {
-//        println(latitude, longitude)
+        println("$latitude, $longitude")
 //        return;
         val sendLocation = SendLocation(latitude, longitude)
         sendLocation.chatId = chatId.toString()
@@ -35,7 +35,7 @@ class TelegramBot(options: DefaultBotOptions?) : TelegramLongPollingBot(options)
     }
 
     fun sendMessage(text: String, chatId: Long, silent: Boolean = false) {
-//        println(text)
+        println(text)
 //        return;
         val sendMessage = SendMessage(chatId, text)
 

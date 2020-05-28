@@ -18,7 +18,7 @@ class RentAvitoFetchingStrategy: FetchingStrategy {
             .build();
 
         val httpResponse = http.newCall(roomsRequest).execute();
-        val avitoResponse = Gson().fromJson(httpResponse.body()?.charStream(), AvitoResponse::class.java)
+        val avitoResponse = Gson().fromJson(httpResponse.body?.charStream(), AvitoResponse::class.java)
 
         if (avitoResponse != null) {
             return avitoResponse.result.items.mapNotNull {

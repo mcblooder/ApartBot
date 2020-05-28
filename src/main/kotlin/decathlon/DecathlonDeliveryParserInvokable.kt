@@ -34,7 +34,7 @@ class DecathlonDeliveryParserInvokable(
             .build();
 
         val httpResponse = http.newCall(roomsRequest).execute();
-        val decathlonResponse = Gson().fromJson(httpResponse.body()?.charStream(), DecathlonResponse::class.java)
+        val decathlonResponse = Gson().fromJson(httpResponse.body?.charStream(), DecathlonResponse::class.java)
 
         decathlonResponse?.orderStatusHistory?.forEach {
             if (!orderStatusHisoryStorage.checkKeyExist(it.uniqueIdentity)) {

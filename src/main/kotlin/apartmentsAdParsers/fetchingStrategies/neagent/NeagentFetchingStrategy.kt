@@ -42,7 +42,7 @@ class NeagentFetchingStrategy: FetchingStrategy {
 
 
         val httpResponse = http.newCall(roomsRequest).execute()
-        val neagentResponse = Gson().fromJson(httpResponse.body()?.charStream(), FeatureCollection::class.java)
+        val neagentResponse = Gson().fromJson(httpResponse.body?.charStream(), FeatureCollection::class.java)
 
         if (neagentResponse != null) {
             return neagentResponse.features.map {

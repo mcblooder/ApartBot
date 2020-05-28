@@ -4,8 +4,9 @@ import com.google.gson.Gson
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import kotlin.random.Random
+import com.example.main.kotlin.extensions.JSON
 
 class GeoService(val http: OkHttpClient) {
 
@@ -16,12 +17,12 @@ class GeoService(val http: OkHttpClient) {
             .header("x-requested-with", "XMLHttpRequest")
             .header("x-requested-uri", "https://taxi.yandex.ru/")
             .header("referer", "https://taxi.yandex.ru/")
-            .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), "{\"ll\":[${lon},${lat}],\"dx\":0,\"not_sticky\":true}"))
+            .post("{\"ll\":[${lon},${lat}],\"dx\":0,\"not_sticky\":true}".toRequestBody(MediaType.JSON))
             .build();
 
         val httpResponse = http.newCall(geoRequest).execute()
 
-        return Gson().fromJson(httpResponse.body()?.charStream(), GeocoderResponse::class.java)
+        return Gson().fromJson(httpResponse.body?.charStream(), GeocoderResponse::class.java)
     }
 
     fun encode(address: String): GeoObject? {
@@ -37,12 +38,12 @@ class GeoService(val http: OkHttpClient) {
             .header("x-requested-with", "XMLHttpRequest")
             .header("x-requested-uri", "https://taxi.yandex.ru/")
             .header("referer", "https://taxi.yandex.ru/")
-            .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), body))
+            .post(body.toRequestBody(MediaType.JSON))
             .build();
 
         val httpResponse = http.newCall(geoRequest).execute()
 
-        return Gson().fromJson(httpResponse.body()?.charStream(), GeoEncoderResponse::class.java).objects.firstOrNull()
+        return Gson().fromJson(httpResponse.body?.charStream(), GeoEncoderResponse::class.java).objects.firstOrNull()
     }
 }
 
