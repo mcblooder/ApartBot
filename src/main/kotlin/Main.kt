@@ -35,7 +35,6 @@ fun main(args: Array<String>) {
     val tg = createTelegramBot()
 
     val invokables = listOf(
-        DecathlonDeliveryParserInvokable(tg, client, db),
         RentApartmentsAdParsersInvokable(tg, client, geoService, db)
     )
 
@@ -144,11 +143,6 @@ fun createHttpClient(): OkHttpClient {
 }
 
 fun createTelegramBot(): TelegramBot {
-    Authenticator.setDefault(object : Authenticator() {
-        override fun getPasswordAuthentication(): PasswordAuthentication {
-            return PasswordAuthentication("mag", "EeChe9ow8Vei".toCharArray())
-        }
-    })
 
     ApiContextInitializer.init()
 
@@ -156,9 +150,9 @@ fun createTelegramBot(): TelegramBot {
 
     val botOptions: DefaultBotOptions = ApiContext.getInstance(DefaultBotOptions::class.java)
 
-    botOptions.proxyHost = "p.dev.magdv.com"
-    botOptions.proxyPort = 1080
-    botOptions.proxyType = DefaultBotOptions.ProxyType.SOCKS5
+//    botOptions.proxyHost = ""
+//    botOptions.proxyPort = 1080
+//    botOptions.proxyType = DefaultBotOptions.ProxyType.SOCKS5
 
     val bot = TelegramBot(botOptions)
     botsApi.registerBot(bot)
