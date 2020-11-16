@@ -37,7 +37,7 @@ class NeagentFetchingStrategy: FetchingStrategy {
             .header("Accept", "application/json")
             .header("X-Requested-With", "XMLHttpRequest")
             .header("Referer", "https://neagent.info/map/tomsk/arenda/sdam-odno-komnatnuyu-kvartiru")
-            .url("https://neagent.info/map/load/?b=56.454937294900915,84.96891904692384,56.45991542231753,84.97898269514774&z=17&t=arenda&sid=45")
+            .url("https://neagent.info/map/load/?b=56.439487861127105,84.88474713708494,56.52061007864491,85.05898343469234&z=13&t=arenda&sid=45")
             .build();
 
 

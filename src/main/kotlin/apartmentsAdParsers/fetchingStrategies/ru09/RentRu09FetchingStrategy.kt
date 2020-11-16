@@ -12,7 +12,7 @@ class RentRu09FetchingStrategy: FetchingStrategy {
         get() = "ru09"
 
     override fun fetchRooms(http: OkHttpClient): List<Room> {
-        val document = Jsoup.connect("https://www.tomsk.ru09.ru/realty/?type=2&otype=1&district[1]=on&rent_type[1]=on&perpage=50").get()
+        val document = Jsoup.connect("https://www.tomsk.ru09.ru/realty/?perpage=50&type=2&otype=1&rent_type[1]=on").get()
 
         val ids = document.select("a[class=visited_ads]").map {
             it.attr("href").split("=").last()
