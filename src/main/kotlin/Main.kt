@@ -2,6 +2,7 @@ package com.example.main.kotlin
 
 import com.example.main.kotlin.apartmentsAdParsers.RentApartmentsAdParsersInvokable
 import com.example.main.kotlin.decathlon.DecathlonDeliveryParserInvokable
+import com.example.main.kotlin.generalAvitoParsers.GeneralAvitoAdParsersInvokable
 import com.example.main.kotlin.interfaces.IntervalInvokable
 import com.example.main.kotlin.persistent.DB
 import com.example.main.kotlin.services.geo.GeoService
@@ -35,7 +36,8 @@ fun main(args: Array<String>) {
     val tg = createTelegramBot()
 
     val invokables = listOf(
-        RentApartmentsAdParsersInvokable(tg, client, geoService, db)
+        RentApartmentsAdParsersInvokable(tg, client, geoService, db),
+        GeneralAvitoAdParsersInvokable(tg, client, geoService, db)
     )
 
     printMemoryUsageEveryMinute()
