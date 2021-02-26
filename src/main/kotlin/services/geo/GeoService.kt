@@ -22,7 +22,9 @@ class GeoService(val http: OkHttpClient) {
 
         val httpResponse = http.newCall(geoRequest).execute()
 
-        return Gson().fromJson(httpResponse.body?.charStream(), GeocoderResponse::class.java)
+        val response = Gson().fromJson(httpResponse.body?.charStream(), GeocoderResponse::class.java)
+        httpResponse.body?.close()
+        return response
     }
 
     fun encode(address: String): GeoObject? {
@@ -43,7 +45,14 @@ class GeoService(val http: OkHttpClient) {
 
         val httpResponse = http.newCall(geoRequest).execute()
 
-        return Gson().fromJson(httpResponse.body?.charStream(), GeoEncoderResponse::class.java).objects.firstOrNull()
+        if (httpResponse.code != 200) {
+            httpResponse.body?.close()
+            return null
+        }
+
+        val response = Gson().fromJson(httpResponse.body?.charStream(), GeoEncoderResponse::class.java).objects.firstOrNull()
+        httpResponse.body?.close()
+        return response
     }
 }
 

@@ -63,8 +63,8 @@ abstract class ApartmentsAdParsersInvokable(
                     geoPoints.add(it.lat!!)
                     geoPoints.add(it.lon!!)
                 } else {
-                    gc.encode(it.address)?.point.let { points ->
-                        geoPoints.addAll(points!!.reversed())
+                    gc.encode(it.address)?.point?.let { points ->
+                        geoPoints.addAll(points.reversed())
                     }
                 }
 

@@ -21,6 +21,8 @@ class GPUAvitoFetchingStrategy: AvitoFetchingStrategy {
         val httpResponse = http.newCall(adsRequest).execute();
         val avitoResponse = Gson().fromJson(httpResponse.body?.charStream(), GeneralAvitoResponse::class.java)
 
+        httpResponse.body?.close()
+
         if (avitoResponse != null) {
             return avitoResponse.result.items.mapNotNull {
                 if (it.value.price == null || it.type.toLowerCase().contains("item") == false) {
